@@ -1,6 +1,5 @@
 checkpoint=$1
 
-
 python demo/camera.py \
     --encoder vit_small \
     --vit_encoder_num_layers 10 \
