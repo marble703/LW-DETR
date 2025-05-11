@@ -4,9 +4,9 @@ coco_path=$1
 python -u main.py \
     --lr 1e-4 \
     --lr_encoder 1.5e-4 \
-    --batch_size 1 \
+    --batch_size 2 \
     --weight_decay 1e-4 \
-    --epochs 60 \
+    --epochs 200 \
     --lr_drop 60 \
     --lr_vit_layer_decay 0.8 \
     --lr_component_decay 0.7 \
@@ -35,4 +35,5 @@ python -u main.py \
     --pretrained_encoder pretrain_weights/caev2_tiny_300e_objects365.pth \
     --pretrain_weights pretrain_weights/LWDETR_tiny_30e_objects365.pth \
     --pretrain_keys_modify_to_load transformer.enc_out_class_embed.0.weight transformer.enc_out_class_embed.1.weight transformer.enc_out_class_embed.2.weight transformer.enc_out_class_embed.3.weight transformer.enc_out_class_embed.4.weight transformer.enc_out_class_embed.5.weight transformer.enc_out_class_embed.6.weight transformer.enc_out_class_embed.7.weight transformer.enc_out_class_embed.8.weight transformer.enc_out_class_embed.9.weight transformer.enc_out_class_embed.10.weight transformer.enc_out_class_embed.11.weight transformer.enc_out_class_embed.12.weight transformer.enc_out_class_embed.0.bias transformer.enc_out_class_embed.1.bias transformer.enc_out_class_embed.2.bias transformer.enc_out_class_embed.3.bias transformer.enc_out_class_embed.4.bias transformer.enc_out_class_embed.5.bias transformer.enc_out_class_embed.6.bias transformer.enc_out_class_embed.7.bias transformer.enc_out_class_embed.8.bias transformer.enc_out_class_embed.9.bias transformer.enc_out_class_embed.10.bias transformer.enc_out_class_embed.11.bias transformer.enc_out_class_embed.12.bias class_embed.weight class_embed.bias \
-    --output_dir output/$model_name
+    --output_dir output/$model_name/0507 \
+    --checkpoint_interval 20
