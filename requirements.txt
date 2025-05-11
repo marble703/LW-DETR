@@ -6,3 +6,5 @@ fairscale
 scipy
 timm
 tqdm
+opencv-python
+tensorboard
