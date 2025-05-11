@@ -1,5 +1,8 @@
 # LW-DETR: A Transformer Replacement to YOLO for Real-Time Detection
 
+This is NOT *official* repository
+you will find it [here](https://github.com/Atten4Vis/LW-DETR)
+
 This is the *official* repository with PyTorch implementation of [LW-DETR: A Transformer Replacement to YOLO for Real-Time Detection](https://arxiv.org/pdf/2406.03459v1).
 
 ☀️ If you find this work useful for your research, please kindly star our repo and cite our paper! ☀️
