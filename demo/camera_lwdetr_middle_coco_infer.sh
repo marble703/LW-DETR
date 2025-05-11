@@ -1,7 +1,5 @@
-model_name='lwdetr_middle_coco'
 checkpoint=$1
-image_path=$2
-output_dir=$3
+
 
 python demo/camera.py \
     --encoder vit_small \
@@ -20,6 +18,4 @@ python demo/camera.py \
     --lite_refpoint_refine \
     --num_select 300 \
     --weights $checkpoint \
-    --input $image_path \
-    --output $output_dir/$model_name \
     --confidence_threshold 0.5
