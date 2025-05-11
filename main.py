@@ -22,6 +22,7 @@ import ast
 import copy
 from pathlib import Path
 
+import numbers
 import numpy as np
 import torch
 from torch.utils.data import DataLoader, DistributedSampler
@@ -34,6 +35,8 @@ from util.get_param_dicts import get_param_dict
 import util.misc as utils
 from util.utils import ModelEma, BestMetricHolder, clean_state_dict
 from util.benchmark import benchmark
+# 导入TensorBoard日志工具
+from torch.utils.tensorboard import SummaryWriter
 
 
 def get_args_parser():
@@ -288,10 +291,17 @@ def main(args):
     if args.eval:
         test_stats, coco_evaluator = evaluate(
             model, criterion, postprocessors, data_loader_val, base_ds, device, args)
+        print(f"Test: {test_stats}")
         if args.output_dir:
             utils.save_on_master(coco_evaluator.coco_eval["bbox"].eval, output_dir / "eval.pth")
         return
-    
+
+    # Setup TensorBoard writer
+    if utils.is_main_process() and args.output_dir:
+        writer = SummaryWriter(log_dir=output_dir / 'tensorboard', flush_secs=10)
+    else:
+        writer = None
+
     # for drop
     total_batch_size = args.batch_size * utils.get_world_size()
     num_training_steps_per_epoch = (len(dataset_train) + total_batch_size - 1) // total_batch_size
@@ -320,6 +330,7 @@ def main(args):
             args.clip_max_norm, ema_m=ema_m, schedules=schedules, 
             num_training_steps_per_epoch=num_training_steps_per_epoch,
             vit_encoder_num_layers=args.vit_encoder_num_layers, args=args)
+        print(f"Epoch {epoch}:\n{train_stats}")
         train_epoch_time = time.time() - epoch_start_time
         train_epoch_time_str = str(datetime.timedelta(seconds=int(train_epoch_time)))
         
@@ -346,7 +357,18 @@ def main(args):
         test_stats, coco_evaluator = evaluate(
             model, criterion, postprocessors, data_loader_val, base_ds, device, args=args
         )
-        
+        # TensorBoard 记录训练和测试指标
+        if writer:
+            for k, v in train_stats.items():
+                val = v[0] if isinstance(v, (list, tuple)) and v and isinstance(v[0], numbers.Number) else v
+                if isinstance(val, numbers.Number):
+                    writer.add_scalar(f"train/{k}", val, epoch)
+            for k, v in test_stats.items():
+                val = v[0] if isinstance(v, (list, tuple)) and v and isinstance(v[0], numbers.Number) else v
+                if isinstance(val, numbers.Number):
+                    writer.add_scalar(f"test/{k}", val, epoch)
+            writer.flush()
+
         map_regular = test_stats['coco_eval_bbox'][0]
         _isbest = best_map_holder.update(map_regular, epoch, is_ema=False)
         if _isbest:
@@ -378,6 +400,13 @@ def main(args):
                     'epoch': epoch,
                     'args': args,
                 }, checkpoint_path)
+            # TensorBoard记录EMA测试指标
+            if writer:
+                for k, v in ema_test_stats.items():
+                    val = v[0] if isinstance(v, (list, tuple)) and v and isinstance(v[0], numbers.Number) else v
+                    if isinstance(val, numbers.Number):
+                        writer.add_scalar(f"ema_test/{k}", val, epoch)
+                writer.flush()
         log_stats.update(best_map_holder.summary())
         
         # epoch parameters
@@ -413,7 +442,9 @@ def main(args):
     total_time = time.time() - start_time
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))
     print('Training time {}'.format(total_time_str))
-
+    # 关闭TensorBoard日志
+    if writer:
+        writer.close()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('LWDETR training and evaluation script', parents=[get_args_parser()])
