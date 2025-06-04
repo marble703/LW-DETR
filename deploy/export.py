@@ -120,7 +120,7 @@ def trtexec(onnx_dir:str, args) -> None:
         "trtexec",
             f"--onnx={onnx_dir}",
             f"--saveEngine={engine_dir}",
-            f"--workspace=4096 --fp16",
+            f"--memPoolSize=workspace:4096 --fp16",
             f"{addition}",
             f"{verbose}"])
 
